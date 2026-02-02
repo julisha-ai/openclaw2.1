@@ -30,10 +30,11 @@ EOF
 export OPENCLAW_CONFIG_PATH=/app/openclaw.cloudrun.json5
 
 # If no args are provided, default to starting the gateway.
-# If args ARE provided (from Docker CMD), run exactly those.
+# If args are provided (e.g. from Docker CMD), run exactly those.
 if [ "$#" -eq 0 ]; then
   set -- gateway --verbose
 fi
 
 exec node dist/index.js "$@"
+
 
