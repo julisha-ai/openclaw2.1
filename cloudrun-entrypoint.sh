@@ -35,6 +35,12 @@ if [ "$#" -eq 0 ]; then
   set -- gateway --verbose
 fi
 
+echo "PORT=$PORT"
+echo "Using config at: $OPENCLAW_CONFIG_PATH"
+echo "Config contents:"
+cat "$OPENCLAW_CONFIG_PATH"
+echo "Starting: node dist/index.js gateway run --verbose"
+
 exec node dist/index.js "$@"
 
 
