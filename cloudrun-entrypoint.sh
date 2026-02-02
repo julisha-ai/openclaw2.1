@@ -14,15 +14,13 @@ cat > /app/openclaw.cloudrun.json5 <<EOF
   gateway: {
     mode: "local",
     port: ${PORT},
-    bind: "custom",
-    customBindHost: "0.0.0.0",
+    bind: "lan",
 
+    // Serve Control UI (dashboard)
     controlUi: { enabled: true },
 
-    auth: {
-      mode: "password",
-      password: "${OPENCLAW_GATEWAY_PASSWORD}"
-    }
+    // Require auth when not loopback
+    auth: { mode: "password" }
   }
 }
 EOF
@@ -41,6 +39,5 @@ echo "Config contents:"
 cat "$OPENCLAW_CONFIG_PATH"
 echo "Starting: node dist/index.js gateway run --verbose"
 
-exec node dist/index.js "$@"
-
+exec node dist/index.js gateway --verbose
 
