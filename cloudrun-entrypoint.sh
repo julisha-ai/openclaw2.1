@@ -39,5 +39,5 @@ echo "Config contents:"
 cat "$OPENCLAW_CONFIG_PATH"
 echo "Starting: node dist/index.js gateway run --verbose"
 
-exec node dist/index.js gateway --verbose
+exec node dist/index.js gateway run --verbose
 
