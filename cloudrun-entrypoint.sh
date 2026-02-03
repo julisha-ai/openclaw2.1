@@ -42,5 +42,9 @@ echo "Config contents:"
 cat "$OPENCLAW_CONFIG_PATH"
 echo "Starting: node dist/index.js gateway run --verbose"
 
+echo "Generated Gateway Config:"
+cat /app/openclaw.cloudrun.json5
+echo "Launching Gateway..."
+
 # 7. Start the gateway
 exec node dist/index.js "$@"
