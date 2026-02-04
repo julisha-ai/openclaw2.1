@@ -47,5 +47,6 @@ ENV NODE_ENV=production
 RUN chown -R node:node /app
 USER node
 
-# Set entrypoint for Cloud Run (uses your dynamic config logic)
-CMD ["/app/cloudrun-entrypoint.sh"]
+# ✅ Use ENTRYPOINT instead of CMD to ensure correct container startup
+ENTRYPOINT ["/app/cloudrun-entrypoint.sh"]
+
