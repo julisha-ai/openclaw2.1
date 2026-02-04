@@ -35,7 +35,13 @@ echo "Using config file at: $OPENCLAW_CONFIG_PATH"
 cat "$OPENCLAW_CONFIG_PATH"
 echo "===================================================="
 
-# Optional: Validate entrypoint (can help debug dist/index.js issues)
+# Check dist/index.js exists
+if [ ! -f dist/index.js ]; then
+  echo "❌ dist/index.js is missing! Ensure pnpm build succeeded."
+  exit 1
+fi
+
+# Optional: Validate entrypoint JS
 if ! node --check dist/index.js; then
   echo "❌ JavaScript file dist/index.js has syntax or build errors!"
   exit 1
@@ -46,5 +52,6 @@ if [ "$#" -eq 0 ]; then
   set -- gateway run --verbose
 fi
 
-# Start the Gateway
+# Log command and launch
+echo "👀 Executing: node dist/index.js $@"
 exec node dist/index.js "$@"
