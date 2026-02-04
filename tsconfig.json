@@ -1,20 +1,19 @@
 {
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
+    "target": "ES2023",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "lib": ["DOM", "DOM.Iterable", "ES2023", "ScriptHost"],
-    "noEmit": true,
-    "declaration": true,
-    "noEmitOnError": true,
-    "outDir": "dist",
-    "resolveJsonModule": true,
     "rootDir": "src",
-    "skipLibCheck": true,
+    "outDir": "dist",
     "strict": true,
-    "target": "es2023"
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "noEmitOnError": true
   },
   "include": ["src/**/*"],
   "exclude": [
