@@ -81,6 +81,7 @@
     "./cli-entry": "./openclaw.mjs"
   },
   "scripts": {
+    "start:cloudrun": "node dist/server.js",
     "android:assemble": "cd apps/android && ./gradlew :app:assembleDebug",
     "android:install": "cd apps/android && ./gradlew :app:installDebug",
     "android:run": "cd apps/android && ./gradlew :app:installDebug && adb shell am start -n ai.openclaw.android/.MainActivity",
