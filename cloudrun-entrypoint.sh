@@ -1,24 +1,22 @@
 #!/bin/sh
 set -eu
 
-# 1. Cloud Run provides this — fallback for local dev.
+# Cloud Run injects PORT; default locally to 8080 if missing.
 PORT="${PORT:-8080}"
 
-# 2. Exit with an error if this required secret is not set in Cloud Run.
+# Require a password to protect the public endpoint.
 : "${OPENCLAW_GATEWAY_PASSWORD:?Set OPENCLAW_GATEWAY_PASSWORD in Cloud Run env vars}"
 
-# 3. Build the minimal config file using PORT and injected password
+# Generate the dynamic OpenClaw config for Cloud Run
 cat > /app/openclaw.cloudrun.json5 <<EOF
 {
   gateway: {
     mode: "local",
     port: ${PORT},
-    bind: "lan",
+    bind: "0.0.0.0",  // Important: expose to all interfaces
 
-    // Serve Control UI (dashboard)
     controlUi: { enabled: true },
 
-    // Require auth with password for public access
     auth: {
       mode: "password",
       password: "${OPENCLAW_GATEWAY_PASSWORD}"
@@ -27,24 +25,26 @@ cat > /app/openclaw.cloudrun.json5 <<EOF
 }
 EOF
 
-# 4. Export config path for the gateway to pick up
 export OPENCLAW_CONFIG_PATH=/app/openclaw.cloudrun.json5
 
-# 5. Default to running the gateway unless args override
-if [ "$#" -eq 0 ]; then
-  set -- gateway --verbose
+# Print debug info
+echo "===================================================="
+echo "🟢 Starting OpenClaw Gateway"
+echo "PORT: $PORT"
+echo "Using config file at: $OPENCLAW_CONFIG_PATH"
+cat "$OPENCLAW_CONFIG_PATH"
+echo "===================================================="
+
+# Optional: Validate entrypoint (can help debug dist/index.js issues)
+if ! node --check dist/index.js; then
+  echo "❌ JavaScript file dist/index.js has syntax or build errors!"
+  exit 1
 fi
 
-# 6. Print logs for debugging in Cloud Run
-echo "PORT=$PORT"
-echo "Using config at: $OPENCLAW_CONFIG_PATH"
-echo "Config contents:"
-cat "$OPENCLAW_CONFIG_PATH"
-echo "Starting: node dist/index.js gateway run --verbose"
+# Default behavior if no custom command provided
+if [ "$#" -eq 0 ]; then
+  set -- gateway run --verbose
+fi
 
-echo "Generated Gateway Config:"
-cat /app/openclaw.cloudrun.json5
-echo "Launching Gateway..."
-
-# 7. Start the gateway
+# Start the Gateway
 exec node dist/index.js "$@"
