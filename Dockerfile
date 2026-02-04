@@ -1,28 +1,51 @@
-# Use a lightweight, production-grade Node.js base
-FROM node:18-slim
+FROM node:22-bookworm
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=8080
+# Install Bun (used for build scripts)
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
 
-# Set working directory
+# Enable Corepack for pnpm
+RUN corepack enable
+
+# Create app directory
 WORKDIR /app
 
-# Copy package files and install only production dependencies
-COPY package*.json ./
-RUN npm ci --omit=dev
+# Optional: install extra packages
+ARG OPENCLAW_DOCKER_APT_PACKAGES=""
+RUN if [ -n "$OPENCLAW_DOCKER_APT_PACKAGES" ]; then \
+      apt-get update && \
+      DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $OPENCLAW_DOCKER_APT_PACKAGES && \
+      apt-get clean && \
+      rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*; \
+    fi
 
-# Copy all remaining source files, including entrypoint and compiled code
+# Copy lockfiles and config
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY ui/package.json ./ui/package.json
+COPY patches ./patches
+COPY scripts ./scripts
+
+# Install dependencies
+RUN pnpm install --frozen-lockfile
+
+# Copy remaining source files
 COPY . .
 
-# Make sure the script has execute permission
-RUN chmod +x cloudrun-entrypoint.sh
+# Build backend and UI
+RUN OPENCLAW_A2UI_SKIP_MISSING=1 pnpm build
+ENV OPENCLAW_PREFER_PNPM=1
+RUN pnpm ui:build
 
-# Expose the port that Cloud Run expects
-EXPOSE 8080
+# Add the custom entrypoint for Cloud Run
+COPY cloudrun-entrypoint.sh /app/cloudrun-entrypoint.sh
+RUN chmod +x /app/cloudrun-entrypoint.sh
 
-# Add logging to help debug in Cloud Run
-RUN echo "Docker image built successfully at $(date)"
+# Environment settings
+ENV NODE_ENV=production
 
-# Use the custom entrypoint script
-ENTRYPOINT ["./cloudrun-entrypoint.sh"]
+# Switch to non-root user for security
+RUN chown -R node:node /app
+USER node
+
+# Set entrypoint for Cloud Run (uses your dynamic config logic)
+CMD ["/app/cloudrun-entrypoint.sh"]
