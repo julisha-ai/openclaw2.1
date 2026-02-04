@@ -38,4 +38,5 @@ if [ "$#" -eq 0 ]; then
 fi
 
 echo "📦 Executing: node dist/index.js $@"
-exec node dist/index.js "$@"
+exec node dist/server.js
+
